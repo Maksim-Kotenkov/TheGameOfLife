@@ -34,8 +34,20 @@ IO15:
 	asect 0x00
 
 matrix: dc 255, 255, 0, 0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
 jsr display
+ldi r0, IO1
+ldi r1, matrix	
+ldi r2, 0
+ld r1, r3
+st r0, r3
+inc r1
+ld r1, r3
+st r0, r3		
+ldi r0, IO0
+ldi r1, 1
+st r0, r1
+ldi r1, 0
+st r0, r1
 halt
 
 display:ldi r0, IO1
