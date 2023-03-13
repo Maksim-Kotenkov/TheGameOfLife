@@ -2498,10 +2498,13 @@
     <comp lib="4" loc="(530,220)" name="ROM">
       <a name="contents">addr/data: 8 8
 ff ff 0 0 4 4 24*0 d6
-21 d4 d0 f1 d1 0 d2 0
-d3 f 7b e0 36 b7 a3 8d
-b7 a3 8d 8c 8e ee 27 d0
-f0 d1 1 a1 d1 0 a1
+34 d0 f1 d1 0 d2 0 b7
+a3 8d b7 a3 d0 f0 d1 1
+a1 d1 0 a1 d4 d0 f1 d1
+0 d2 0 d3 f 7b e0 49
+b7 a3 8d b7 a3 8d 8c 8e
+ee 3a d0 f0 d1 1 a1 d1
+0 a1
 </a>
     </comp>
     <comp lib="5" loc="(500,500)" name="Button">
