@@ -58,10 +58,10 @@ display:ldi r0, IO1
 			ldi r3, 15
 			cmp r2, r3
 		stays ne
-			ld r1, r3
+			ldc r1, r3
 			st r0, r3
 			inc r1
-			ld r1, r3
+			ldc r1, r3
 			st r0, r3
 			inc r1
 			inc r0
