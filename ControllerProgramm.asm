@@ -45,9 +45,13 @@ run main
 ### main code
 main:
 	jsr init
-	#jsr RIGHT
+	jsr RIGHT
 	#jsr LEFT
 	jsr UP
+	jsr RIGHT
+	jsr RIGHT
+	jsr RIGHT
+	jsr RIGHT
 	jsr RIGHT
 	jsr RIGHT
 	jsr RIGHT
@@ -95,11 +99,18 @@ display:ldi r0, IO1
 		st r0, r1
 		rts
 
-RIGHT:if
+# pos adress in r0
+# pos value in r1
+# matrix[pos] adress in r2
+moving_preparing:
 		ldi r0,pos
 		ld r0,r1 #pos in r1
 		ldi r2, matrix #matrix adress in r2
 		add r1, r2 # matrix adr + pos to r2
+		rts
+
+RIGHT:if
+		jsr moving_preparing
 		ld r2,r2 #matrix[pos] val in r2
 		shr r2 # moving in a row
 	is cs #if problems and we crossed the border
@@ -115,10 +126,7 @@ RIGHT:if
 	rts
 
 LEFT: if
-		ldi r0,pos
-		ld r0,r1 #pos in r1
-		ldi r2, matrix #matrix adress in r2
-		add r1, r2 # matrix adr + pos to r2
+		jsr moving_preparing
 		ld r2,r2 #matrix[pos] val in r2
 		shla r2 
 	is cs
@@ -136,11 +144,8 @@ LEFT: if
 
 # load 1 in r3 to left shjift or 128 to right shift
 LEFTorRIGHT:
-	ldi r0, pos
-	ld r0, r1 
-	ldi r2, matrix #matrix adress in r2
+	jsr moving_preparing
 	ld r2, r0 #copy matrix[pos] data to r0
-	add r1, r2 # matrix adr + pos to r2
 	ldi r1, 0 
 	st r2, r1 #overwrite matrix[pos] with 0
 	
@@ -206,10 +211,7 @@ DOWN:if
 
 #store in r3 the number to move
 UPorDOWN:
-		ldi r1, pos
-		ld r1, r1
-		ldi r2, matrix #matrix adress in r2
-		add r1, r2 # matrix adr + pos to r2
+		jsr moving_preparing
 		ld r2, r0 #copy matrix[pos] data to r0
 		ldi r1, 0 
 		st r2, r1 #overwrite matrix[pos] with 0
