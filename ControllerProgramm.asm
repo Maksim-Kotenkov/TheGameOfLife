@@ -31,6 +31,12 @@ IO14:
 	asect 0xff
 IO15:
 
+	asect 0x00
+pos:
+	asect 0x01
+matrix:
+	asect 0x30
+matrix_o:
 
 #####################################################################
 run main
@@ -38,13 +44,14 @@ run main
 
 ### main code
 main:
+	jsr init
 	#jsr RIGHT
 	#jsr LEFT
-	#jsr UP
-	jsr LEFT
-	jsr LEFT
-	jsr LEFT
-	jsr LEFT
+	jsr UP
+	jsr RIGHT
+	jsr RIGHT
+	jsr RIGHT
+	jsr RIGHT
 	jsr LEFT
 	jsr LEFT
 	jsr LEFT
@@ -52,19 +59,30 @@ main:
 	jsr LEFT
 	halt
 
+# Creating start point
+init:
+	ldi r0, 15
+	ldi r1, 128
+	ldi r2, matrix
+	ldi r3, pos
+	st r3, r0 
+	add r0, r2
+	st r2, r1
+	rts
+
 ### display condition when user rules the world
 display:ldi r0, IO1
-		ldi r1, matrix	
+		ldi r1, matrix_o
 		ldi r2, 0
 		
 		while
 			ldi r3, 15
 			cmp r2, r3
 		stays ne
-			ldc r1, r3
+			ld r1, r3
 			st r0, r3
 			inc r1
-			ldc r1, r3
+			ld r1, r3
 			st r0, r3
 			inc r1
 			inc r0
@@ -125,43 +143,30 @@ LEFTorRIGHT:
 	add r1, r2 # matrix adr + pos to r2
 	ldi r1, 0 
 	st r2, r1 #overwrite matrix[pos] with 0
+	
+	if
+		ldi r1, 1
+		ldi r0, pos
+		ld r0, r0
+		and r0, r1 #check even pos or not
+	is z #четное
+		inc r2
+		inc r0
+		ldi r1, pos
+		st r1, r0 #change pos
+	else #нечетное
+		dec r2
+		dec r0
+		ldi r1, pos
+		st r1, r0
+	fi
+	
 	if
 		tst r3
 	is mi #128 -> right
-		if
-			ldi r1, 1
-			ldi r3, pos
-			ld r3, r3
-			and r3, r1 #check even pos or not
-		is z #четное
-			inc r2
-			inc r3
-			ldi r0, pos
-			st r0, r3 #change pos
-		else #нечетное
-			dec r2
-			dec r3
-			ldi r0, pos
-			st r0, r3
-		fi
 		ldi r0,128
 		st r2, r0 # now 255 on new pos (-2 or +2)
 	else #1 -> left
-		if
-			ldi r1, pos
-			ld r1, r1
-			and r1, r3
-		is z #четное
-			inc r2
-			inc r1
-			ldi r0, pos
-			st r0, r1 #change pos
-		else #нечетное
-			dec r2
-			dec r1
-			ldi r0, pos
-			st r0, r1 #change pos
-		fi
 		ldi r0,1
 		st r2, r0 # now 1 on new pos (-2 or +2)
 	fi
@@ -202,23 +207,23 @@ DOWN:if
 #store in r3 the number to move
 UPorDOWN:
 		ldi r1, pos
-		ldc r1, r1
+		ld r1, r1
 		ldi r2, matrix #matrix adress in r2
 		add r1, r2 # matrix adr + pos to r2
-		ldc r2, r0 #copy matrix[pos] data to r0
+		ld r2, r0 #copy matrix[pos] data to r0
 		ldi r1, 0 
 		st r2, r1 #overwrite matrix[pos] with 0
 		add r3, r2
 		st r2, r0 #matrix[pos] data saved in r0 to matrix[pos+2]
 		ldi r0, pos
-		ldc r0, r2 #ld pos value to r2
+		ld r0, r2 #ld pos value to r2
 		add r3, r2
 		st r0, r2 #overwrite pos
 		rts
 
 
 # matrix_o: dc 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-matrix: dc 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-pos: dc 0
+# matrix: dc 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+# pos: dc 0
 
 end
