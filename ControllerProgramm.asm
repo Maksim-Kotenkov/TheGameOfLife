@@ -45,23 +45,18 @@ run main
 ### main code
 main:
 	jsr init
-	jsr RIGHT
-	#jsr LEFT
-	jsr UP
-	jsr RIGHT
-	jsr RIGHT
-	jsr RIGHT
-	jsr RIGHT
-	jsr RIGHT
-	jsr RIGHT
-	jsr RIGHT
-	jsr RIGHT
-	jsr LEFT
-	jsr LEFT
-	jsr LEFT
-	jsr LEFT
-	jsr LEFT
+	jsr control
+	jsr tick
 	halt
+
+tick:
+	ldi r0, IO0
+	ldi r1, 1
+	ldi r2, 0
+	while
+		st r0, r1
+		st r0, r2
+	wend
 
 # Creating start point
 init:
@@ -74,15 +69,79 @@ init:
 	st r2, r1
 	rts
 
+control:
+	while
+		ldi r3, 3
+		#ld r3, r3
+		jsr moving_preparing
+		if
+			dec r3
+		is eq
+			jsr UP
+		else
+			if
+				dec r3
+			is eq
+				jsr RIGHT
+			else
+				if 
+					dec r3
+				is eq
+					jsr DOWN
+				else
+					if
+						dec r3
+					is eq
+						jsr LEFT
+					else
+						if
+							dec r3
+						is eq
+							jsr copy_to_final
+						else
+							if
+								dec r3
+							is eq
+								#start playing
+								rts
+							fi
+						fi
+					fi
+				fi
+			fi
+		fi
+		jsr display
+	wend
+	rts
+
+copy_to_final:
+	ldi r0, matrix
+	ldi r1, matrix_o
+	ldi r2, 30
+	while
+		tst r2
+	stays pl
+		push r2
+		ld r0, r2
+		ld r1, r3
+		or r2, r3
+		st r1, r3
+		pop r2
+		inc r0
+		inc r1
+		dec r2
+	wend
+	rts
+
 ### display condition when user rules the world
-display:ldi r0, IO1
+display:
+		ldi r0, IO1
 		ldi r1, matrix_o
-		ldi r2, 0
+		ldi r2, 15
 		
 		while
-			ldi r3, 15
-			cmp r2, r3
-		stays ne
+			tst r2
+		stays pl
 			ld r1, r3
 			st r0, r3
 			inc r1
@@ -90,7 +149,7 @@ display:ldi r0, IO1
 			st r0, r3
 			inc r1
 			inc r0
-			inc r2
+			dec r2
 		wend
 		ldi r0, IO0
 		ldi r1, 1
@@ -109,8 +168,8 @@ moving_preparing:
 		add r1, r2 # matrix adr + pos to r2
 		rts
 
-RIGHT:if
-		jsr moving_preparing
+RIGHT:
+	if
 		ld r2,r2 #matrix[pos] val in r2
 		shr r2 # moving in a row
 	is cs #if problems and we crossed the border
@@ -119,14 +178,12 @@ RIGHT:if
 	else
 		#спасите
 		#спасли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
-		ldi r3, matrix #matrix adress in r2
-		add r1, r3 # matrix adr + pos to r2
-		st r3, r2
+		jsr regular
 	fi
 	rts
 
-LEFT: if
-		jsr moving_preparing
+LEFT:
+	if
 		ld r2,r2 #matrix[pos] val in r2
 		shla r2 
 	is cs
@@ -136,15 +193,12 @@ LEFT: if
 	else
 		#боже помогите
 		#помогли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
-		ldi r3, matrix #matrix adress in r2
-		add r1, r3 # matrix adr + pos to r2
-		st r3, r2
+		jsr regular
 	fi
 	rts
 
 # load 1 in r3 to left shjift or 128 to right shift
 LEFTorRIGHT:
-	jsr moving_preparing
 	ld r2, r0 #copy matrix[pos] data to r0
 	ldi r1, 0 
 	st r2, r1 #overwrite matrix[pos] with 0
@@ -193,7 +247,8 @@ UP:
 	fi
 	rts
 
-DOWN:if
+DOWN:
+	if
 		ldi r3, 27
 		ldi r0, pos
 		ld r0, r1 # pos in r1
@@ -211,7 +266,6 @@ DOWN:if
 
 #store in r3 the number to move
 UPorDOWN:
-		jsr moving_preparing
 		ld r2, r0 #copy matrix[pos] data to r0
 		ldi r1, 0 
 		st r2, r1 #overwrite matrix[pos] with 0
@@ -223,6 +277,11 @@ UPorDOWN:
 		st r0, r2 #overwrite pos
 		rts
 
+regular:
+		ldi r3, matrix #matrix adress in r2
+		add r1, r3 # matrix adr + pos to r2
+		st r3, r2
+		rts
 
 # matrix_o: dc 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 # matrix: dc 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
