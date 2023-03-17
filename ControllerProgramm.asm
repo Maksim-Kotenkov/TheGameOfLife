@@ -38,8 +38,18 @@ run main
 
 ### main code
 main:
-	jsr UP
-	
+	#jsr RIGHT
+	#jsr LEFT
+	#jsr UP
+	jsr LEFT
+	jsr LEFT
+	jsr LEFT
+	jsr LEFT
+	jsr LEFT
+	jsr LEFT
+	jsr LEFT
+	jsr LEFT
+	jsr LEFT
 	halt
 
 ### display condition when user rules the world
@@ -67,6 +77,96 @@ display:ldi r0, IO1
 		st r0, r1
 		rts
 
+RIGHT:if
+		ldi r0,pos
+		ld r0,r1 #pos in r1
+		ldi r2, matrix #matrix adress in r2
+		add r1, r2 # matrix adr + pos to r2
+		ld r2,r2 #matrix[pos] val in r2
+		shr r2 # moving in a row
+	is cs #if problems and we crossed the border
+		ldi r3, 128
+		jsr LEFTorRIGHT
+	else
+		#спасите
+		#спасли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
+		ldi r3, matrix #matrix adress in r2
+		add r1, r3 # matrix adr + pos to r2
+		st r3, r2
+	fi
+	rts
+
+LEFT: if
+		ldi r0,pos
+		ld r0,r1 #pos in r1
+		ldi r2, matrix #matrix adress in r2
+		add r1, r2 # matrix adr + pos to r2
+		ld r2,r2 #matrix[pos] val in r2
+		shla r2 
+	is cs
+		ldi r3, 1
+		jsr LEFTorRIGHT
+			
+	else
+		#боже помогите
+		#помогли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
+		ldi r3, matrix #matrix adress in r2
+		add r1, r3 # matrix adr + pos to r2
+		st r3, r2
+	fi
+	rts
+
+# load 1 in r3 to left shjift or 128 to right shift
+LEFTorRIGHT:
+	ldi r0, pos
+	ld r0, r1 
+	ldi r2, matrix #matrix adress in r2
+	ld r2, r0 #copy matrix[pos] data to r0
+	add r1, r2 # matrix adr + pos to r2
+	ldi r1, 0 
+	st r2, r1 #overwrite matrix[pos] with 0
+	if
+		tst r3
+	is mi #128 -> right
+		if
+			ldi r1, 1
+			ldi r3, pos
+			ld r3, r3
+			and r3, r1 #check even pos or not
+		is z #четное
+			inc r2
+			inc r3
+			ldi r0, pos
+			st r0, r3 #change pos
+		else #нечетное
+			dec r2
+			dec r3
+			ldi r0, pos
+			st r0, r3
+		fi
+		ldi r0,128
+		st r2, r0 # now 255 on new pos (-2 or +2)
+	else #1 -> left
+		if
+			ldi r1, pos
+			ld r1, r1
+			and r1, r3
+		is z #четное
+			inc r2
+			inc r1
+			ldi r0, pos
+			st r0, r1 #change pos
+		else #нечетное
+			dec r2
+			dec r1
+			ldi r0, pos
+			st r0, r1 #change pos
+		fi
+		ldi r0,1
+		st r2, r0 # now 1 on new pos (-2 or +2)
+	fi
+	rts
+
 UP:
 	if
 		ldi r3, 2
@@ -74,52 +174,50 @@ UP:
 		ld r0, r1 # pos in r1
 		cmp r1, r3
 	is mi
-		# upper row
-		ldi r2, matrix #matrix adress in r2
-		add r1, r2 # matrix adr + pos to r2
-		ldi r3, 28 # 28 to r3
-		add r2, r3 #(matrix adr + pos in r2) + 28 to r3
-		ld r2, r0 #copy matrix[pos] data to r0
-		ldi r1, 0 
-		st r2, r1 #overwrite matrix[pos] with 0
-		st r3, r0 #matrix[pos] data saved in r0 to matrix[pos+28]
-		ldi r0, pos
-		ld r0, r2 #ld pos value to r2
-		ldi r1, 28
-		add r2, r1 #increase pos value in r2 with 28
-		st r0, r1 #overwrite pos
+		ldi r3, 28
+		jsr UPorDOWN
 	else
 		# regular
+		ldi r3, -2
+		jsr UPorDOWN
+	fi
+	rts
+
+DOWN:if
+		ldi r3, 27
+		ldi r0, pos
+		ld r0, r1 # pos in r1
+		cmp r3, r1
+	is mi
+		# bottom row
+		ldi r3, -28
+		jsr UPorDOWN
+	else
+		# regular
+		ldi r3, 2
+		jsr UPorDOWN
+	fi
+	rts
+
+#store in r3 the number to move
+UPorDOWN:
+		ldi r1, pos
+		ldc r1, r1
 		ldi r2, matrix #matrix adress in r2
-		ld r2, r0 #copy matrix[pos] data to r0
 		add r1, r2 # matrix adr + pos to r2
+		ldc r2, r0 #copy matrix[pos] data to r0
 		ldi r1, 0 
 		st r2, r1 #overwrite matrix[pos] with 0
-		dec r2
-		dec r2
-		st r2, r0 #matrix[pos] data saved in r0 to matrix[pos-2]
+		add r3, r2
+		st r2, r0 #matrix[pos] data saved in r0 to matrix[pos+2]
 		ldi r0, pos
-		ld r0, r2 #ld pos value to r2
-		dec r2
-		dec r2
+		ldc r0, r2 #ld pos value to r2
+		add r3, r2
 		st r0, r2 #overwrite pos
-	fi
-		
+		rts
 
-RIGHT:
 
-DOWN:
-
-LEFT:
-
-VALUE_TO_R1:
-	ldi r0, pos
-	ld r0, r0
-	ldi r1, matrix
-	add r0, r1
-	ld r1, r1
-
-matrix_o: dc 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+# matrix_o: dc 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 matrix: dc 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 pos: dc 0
 
