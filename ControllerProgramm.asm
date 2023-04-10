@@ -44,22 +44,22 @@ MATRIX_O:
 STACK:
 
 #####################################################################
-	jmp start
-	#ldi r0, STACK
-	#stsp r0
 ### main code
 asect 0
 start:
 	ldi r0, 15
-	# ldi r1, 128 #correct
-	ldi r1, 224 #test
-	ldi r2, MATRIX
+	ldi r1, 128 #test
+	ldi r2, MATRIX_O
 	ldi r3, POS
 	st r3, r0 
 	add r0, r2
 	st r2, r1
-	#jsr control
-	jsr display
+	ldi r2, MATRIX
+	add r0, r2
+	st r2, r1
+
+	jsr control
+	#jsr display
 
 	# now clear user's impact
 	ldi r0, IO1
@@ -85,52 +85,51 @@ start:
 	wend
 
 control:
+	jsr display
 	while
-	stays nz
 		ldi r3, IO0
 		ld r3, r3
+		tst r3
+	stays nz
+		jsr moving_preparing
 		if
-			tst r3
-		is nz
-			jsr moving_preparing
+			dec r3
+		is eq
+			# rts #test
+			jsr up
+		else
 			if
 				dec r3
 			is eq
-				jsr up
+				jsr right
 			else
-				if
+				if 
 					dec r3
 				is eq
-					jsr right
+					jsr down
 				else
-					if 
+					if
 						dec r3
 					is eq
-						jsr down
+						jsr left
 					else
 						if
 							dec r3
 						is eq
-							jsr left
+							jsr copy_to_final
 						else
 							if
 								dec r3
 							is eq
-								jsr copy_to_final
-							else
-								if
-									dec r3
-								is eq
-									#start playing
-									rts
-								fi
+								#start playing
+								rts
 							fi
 						fi
 					fi
 				fi
 			fi
-			jsr display
 		fi
+		jsr display
 	wend
 	rts
 
@@ -155,27 +154,41 @@ copy_to_final:
 
 ### display condition when user rules the world
 display:
-		ldi r0, IO1
-		ldi r1, MATRIX
-		ldi r2, 15
+		ldi r0, 30
+		ldi r1, IO1
 		
 		while
-			tst r2
+			tst r0
 		stays pl
-			ld r1, r3
-			st r0, r3
+			ldi r2, MATRIX
+			add r0, r2
+			ld r2, r2
+			ldi r3, MATRIX_O
+			add r0, r3
+			ld r3, r3
+			or r2, r3
+			st r1, r3
+			dec r0
+
+			ldi r2, MATRIX
+			add r0, r2
+			ld r2, r2
+			ldi r3, MATRIX_O
+			add r0, r3
+			ld r3, r3
+			or r2, r3
+			st r1, r3
+			dec r0
+
 			inc r1
-			ld r1, r3
-			st r0, r3
-			inc r1
-			inc r0
-			dec r2
 		wend
-		#смена состояний
-		ldi r0, IO0
-		ldi r1, 1
-		st r0, r1
-		st r0, r2
+
+		ldi r2, IO0
+		ldi r3, 1
+		st r2, r3
+		ldi r3, 0
+		st r2, r3
+
 		rts
 
 # POS adress in r0
@@ -303,9 +316,5 @@ overwrite:
 	ldi r1, 0 
 	st r2, r1 #overwrite MATRIX[POS] with 0
 	rts
-			
-# MATRIX_O: dc 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-# MATRIX: dc 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-# POS: dc 0
 
 end
