@@ -63,6 +63,7 @@ start:
 	ldi r2, IO_NOW
 	st r2, r3
 
+	jsr display
 	jsr control
 	#jsr display
 
@@ -90,7 +91,6 @@ start:
 	wend
 
 control:
-	jsr display
 	while
 		ldi r3, IO0
 		ld r3, r3
@@ -102,37 +102,35 @@ control:
 		is eq
 			# rts #test
 			jsr up
-		else
-			if
-				dec r3
-			is eq
-				jsr right
-			else
-				if 
-					dec r3
-				is eq
-					jsr down
-				else
-					if
-						dec r3
-					is eq
-						jsr left
-					else
-						if
-							dec r3
-						is eq
-							jsr copy_to_final
-						else
-							if
-								dec r3
-							is eq
-								#start playing
-								rts
-							fi
-						fi
-					fi
-				fi
-			fi
+			jsr display
+		fi
+		if
+			dec r3
+		is eq
+			jsr right
+		fi
+		if 
+			dec r3
+		is eq
+			jsr down
+			jsr display
+		fi
+		if
+			dec r3
+		is eq
+			jsr left
+		fi
+		if
+			dec r3
+		is eq
+			jsr copy_to_final
+			rts
+		fi
+		if
+			dec r3
+		is eq
+			#start playing
+			rts
 		fi
 		#jsr display
 	wend
@@ -321,10 +319,17 @@ up:
 		ld r0, r1 # POS in r1
 		cmp r1, r3
 	is mi
+		ldi r0, IO_NOW
+		ldi r1, IO1
+		st r0, r1
 		ldi r3, 28
 		jsr up_or_down
 	else
 		# regular
+		ldi r0, IO_NOW
+		ld r0, r1
+		inc r1
+		st r0, r1
 		ldi r3, -2
 		jsr up_or_down
 	fi
@@ -338,10 +343,17 @@ down:
 		cmp r3, r1
 	is mi
 		# bottom row
+		ldi r0, IO_NOW
+		ldi r1, IO15
+		st r0, r1
 		ldi r3, -28
 		jsr up_or_down
 	else
 		# regular
+		ldi r0, IO_NOW
+		ld r0, r1
+		dec r1
+		st r0, r1
 		ldi r3, 2
 		jsr up_or_down
 	fi
@@ -349,36 +361,13 @@ down:
 
 #store in r3 the number to move
 up_or_down:
-		jsr overwrite
+		ld r2, r0 #copy MATRIX[POS] data to r0
+		ldi r1, 0 
+		st r2, r1 #overwrite MATRIX[POS] with 0
 		add r3, r2
 		st r2, r0 #MATRIX[POS] data saved in r0 to MATRIX[POS+2]
-
-		#make old pos without cursor
 		ldi r0, POS
 		ld r0, r2 #ld POS value to r2
-		ldi r0, 254
-		and r0, r2
-		ldi r1, MATRIX_O
-		add r2, r1
-		ld r1, r1
-
-		ldi r0, IO_NOW
-		ld r0, r0
-		st r0, r1
-
-		ldi r0, POS
-		ld r0, r2 #ld POS value to r2
-		ldi r0, 254
-		and r0, r2
-		ldi r1, MATRIX_O
-		add r2, r1
-		inc r1
-		ld r1, r1
-
-		ldi r0, IO_NOW
-		ld r0, r0
-		st r0, r1
-
 		add r3, r2
 		st r0, r2 #overwrite POS
 		rts
