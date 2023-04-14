@@ -1,8 +1,6 @@
 #import logisim-banked-memory-0.1.2.jar
 	asect 0xd0
-OLD_POS:
-	asect 0xd1
-NEW_POS:
+IO_NOW:
 
 	asect 0xe0
 IO0:
@@ -61,6 +59,9 @@ start:
 	ldi r2, MATRIX
 	add r0, r2
 	st r2, r1
+	ldi r3, IO8
+	ldi r2, IO_NOW
+	st r2, r3
 
 	jsr control
 	#jsr display
@@ -133,7 +134,7 @@ control:
 				fi
 			fi
 		fi
-		jsr display
+		#jsr display
 	wend
 	rts
 
@@ -208,7 +209,7 @@ moving_preparing:
 
 right:
 	if
-		ld r2,r3 #MATRIX[POS] val in r2
+		ld r2,r3 #MATRIX[POS] val in r3
 		shr r3 # moving in a row
 	is cs #if problems and we crossed the border
 		ldi r3, 128
@@ -240,23 +241,26 @@ left:
 # load 1 in r3 to left shjift or 128 to right shift
 left_or_right:
 	jsr overwrite
+
 	if
 		ldi r0, POS
 		ld r0, r0
 		ldi r1, 1
 		and r0, r1 #check even POS or not
 	is z #четное
-		dec r2
-		dec r0
+		inc r2
+		inc r0
 		ldi r1, POS
 		st r1, r0 #change POS
 	else #нечетное
-		inc r2
-		inc r0
+		dec r2
+		dec r0
 		ldi r1, POS
 		st r1, r0
 	fi
 	
+	ldi r2, MATRIX
+	add r0, r2
 	if
 		tst r3
 	is mi #128 -> right
@@ -266,6 +270,48 @@ left_or_right:
 		ldi r0,1
 		st r2, r0 # now 1 on new POS (-2 or +2)
 	fi
+
+	# matrix update
+	ldi r1, POS
+	ld r1, r1
+
+	# make r1 even
+	ldi r2, 254
+	and r2, r1
+
+	#first half
+	ldi r2, MATRIX
+	add r1, r2
+	ld r2, r2
+	ldi r3, MATRIX_O
+	add r1, r3
+	ld r3, r3
+	or r2, r3
+	ldi r2, IO_NOW
+	ld r2, r2
+	st r2, r3
+
+
+	#second half
+	ldi r2, MATRIX
+	add r1, r2
+	inc r2
+	ld r2, r2
+	ldi r3, MATRIX_O
+	add r1, r3
+	inc r3
+	ld r3, r3
+	or r2, r3
+	ldi r2, IO_NOW
+	ld r2, r2
+	st r2, r3
+	
+	#display tick
+	ldi r2, IO0
+	ldi r3, 1
+	st r2, r3
+	ldi r3, 0
+	st r2, r3
 	rts
 
 up:
@@ -306,20 +352,89 @@ up_or_down:
 		jsr overwrite
 		add r3, r2
 		st r2, r0 #MATRIX[POS] data saved in r0 to MATRIX[POS+2]
+
+		#make old pos without cursor
 		ldi r0, POS
 		ld r0, r2 #ld POS value to r2
+		ldi r0, 254
+		and r0, r2
+		ldi r1, MATRIX_O
+		add r2, r1
+		ld r1, r1
+
+		ldi r0, IO_NOW
+		ld r0, r0
+		st r0, r1
+
+		ldi r0, POS
+		ld r0, r2 #ld POS value to r2
+		ldi r0, 254
+		and r0, r2
+		ldi r1, MATRIX_O
+		add r2, r1
+		inc r1
+		ld r1, r1
+
+		ldi r0, IO_NOW
+		ld r0, r0
+		st r0, r1
+
 		add r3, r2
 		st r0, r2 #overwrite POS
 		rts
 
 regular:
+		# matrix update
+		ldi r1, POS
+		ld r1, r1
 		ldi r2, MATRIX #MATRIX adress in r2
 		add r1, r2 # MATRIX adr + POS to r2
+		st r2, r3
+
+		# make r1 even
+		ldi r2, 254
+		and r2, r1
+
+		#first half
+		ldi r2, MATRIX
+		add r1, r2
+		ld r2, r2
+		ldi r3, MATRIX_O
+		add r1, r3
+		ld r3, r3
+		or r2, r3
+		ldi r2, IO_NOW
+		ld r2, r2
+		st r2, r3
+
+
+		#second half
+		inc r1
+		
+		ldi r2, MATRIX
+		add r1, r2
+		ld r2, r2
+		ldi r3, MATRIX_O
+		add r1, r3
+		ld r3, r3
+		or r2, r3
+		ldi r2, IO_NOW
+		ld r2, r2
+		st r2, r3
+		
+		#display tick
+		ldi r2, IO0
+		ldi r3, 1
+		st r2, r3
+		ldi r3, 0
 		st r2, r3
 		rts
 			
 overwrite:
-	ld r2, r0 #copy MATRIX[POS] data to r0
+	ldi r2, MATRIX
+	ldi r0, POS
+	ld r0, r0
+	add r0, r2
 	ldi r1, 0 
 	st r2, r1 #overwrite MATRIX[POS] with 0
 	rts
