@@ -1,4 +1,8 @@
 #import logisim-banked-memory-0.1.2.jar
+	asect 0xd0
+OLD_POS:
+	asect 0xd1
+NEW_POS:
 
 	asect 0xe0
 IO0:
@@ -152,6 +156,7 @@ copy_to_final:
 	wend
 	rts
 
+
 ### display condition when user rules the world
 display:
 		ldi r0, 30
@@ -211,6 +216,8 @@ right:
 	else
 		#спасите
 		#спасли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
+		ldi r0, 128
+		xor r0, r3
 		jsr regular
 	fi
 	rts
@@ -234,18 +241,18 @@ left:
 left_or_right:
 	jsr overwrite
 	if
-		ldi r1, 1
 		ldi r0, POS
 		ld r0, r0
+		ldi r1, 1
 		and r0, r1 #check even POS or not
 	is z #четное
-		inc r2
-		inc r0
+		dec r2
+		dec r0
 		ldi r1, POS
 		st r1, r0 #change POS
 	else #нечетное
-		dec r2
-		dec r0
+		inc r2
+		inc r0
 		ldi r1, POS
 		st r1, r0
 	fi
@@ -279,7 +286,7 @@ up:
 
 down:
 	if
-		ldi r3, 27
+		ldi r3, 28
 		ldi r0, POS
 		ld r0, r1 # POS in r1
 		cmp r3, r1
