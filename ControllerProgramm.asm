@@ -63,9 +63,9 @@ start:
 	ldi r2, IO_NOW
 	st r2, r3
 
-	jsr display
+	jsr display_only_matrix_o
+	jsr display_tick
 	jsr control
-	#jsr display
 
 	# now clear user's impact
 	ldi r0, IO1
@@ -102,7 +102,7 @@ control:
 		is eq
 			# rts #test
 			jsr up
-			jsr display
+			#jsr display
 		fi
 		if
 			dec r3
@@ -113,7 +113,7 @@ control:
 			dec r3
 		is eq
 			jsr down
-			jsr display
+			#jsr display
 		fi
 		if
 			dec r3
@@ -157,43 +157,70 @@ copy_to_final:
 
 
 ### display condition when user rules the world
-display:
-		ldi r0, 30
-		ldi r1, IO1
+# display:
+# 		ldi r0, 30
+# 		ldi r1, IO1
 		
-		while
-			tst r0
-		stays pl
-			ldi r2, MATRIX
-			add r0, r2
-			ld r2, r2
-			ldi r3, MATRIX_O
-			add r0, r3
-			ld r3, r3
-			or r2, r3
-			st r1, r3
-			dec r0
+# 		while
+# 			tst r0
+# 		stays pl
+# 			ldi r2, MATRIX
+# 			add r0, r2
+# 			ld r2, r2
+# 			ldi r3, MATRIX_O
+# 			add r0, r3
+# 			ld r3, r3
+# 			or r2, r3
+# 			st r1, r3
+# 			dec r0
 
-			ldi r2, MATRIX
-			add r0, r2
-			ld r2, r2
-			ldi r3, MATRIX_O
-			add r0, r3
-			ld r3, r3
-			or r2, r3
-			st r1, r3
-			dec r0
+# 			ldi r2, MATRIX
+# 			add r0, r2
+# 			ld r2, r2
+# 			ldi r3, MATRIX_O
+# 			add r0, r3
+# 			ld r3, r3
+# 			or r2, r3
+# 			st r1, r3
+# 			dec r0
 
-			inc r1
-		wend
+# 			inc r1
+# 		wend
 
-		ldi r2, IO0
-		ldi r3, 1
-		st r2, r3
-		ldi r3, 0
-		st r2, r3
+# 		ldi r2, IO0
+# 		ldi r3, 1
+# 		st r2, r3
+# 		ldi r3, 0
+# 		st r2, r3
 
-		rts
+# 		rts
+
+display_only_matrix_o:
+	#display new row
+	ldi r1, POS
+	ld r1, r1
+
+	# make r1 even
+	ldi r2, 254
+	and r2, r1
+
+	#first half
+	ldi r0, MATRIX_O
+	add r1, r0
+	ld r0, r0
+	ldi r2, IO_NOW
+	ld r2, r2
+	st r2, r0
+
+	#second half
+	inc r1
+	ldi r0, MATRIX_O
+	add r1, r0
+	ld r0, r0
+	ldi r2, IO_NOW
+	ld r2, r2
+	st r2, r0
+	rts
 
 # POS adress in r0
 # POS value in r1
@@ -204,6 +231,41 @@ moving_preparing:
 		ldi r2, MATRIX #MATRIX adress in r2
 		add r1, r2 # MATRIX adr + POS to r2
 		rts
+
+display_row:
+	#display new row
+	ldi r1, POS
+	ld r1, r1
+
+	ldi r2, 254
+	and r2, r1
+
+	#first half
+	ldi r2, MATRIX
+	add r1, r2
+	ld r2, r2
+	ldi r0, MATRIX_O
+	add r1, r0
+	ld r0, r0
+	or r2, r0
+	ldi r2, IO_NOW
+	ld r2, r2
+	st r2, r0
+
+	#second half
+	inc r1
+	
+	ldi r2, MATRIX
+	add r1, r2
+	ld r2, r2
+	ldi r0, MATRIX_O
+	add r1, r0
+	ld r0, r0
+	or r2, r0
+	ldi r2, IO_NOW
+	ld r2, r2
+	st r2, r0
+	rts
 
 right:
 	if
@@ -228,7 +290,6 @@ left:
 	is cs
 		ldi r3, 1
 		jsr left_or_right
-			
 	else
 		#боже помогите
 		#помогли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
@@ -245,6 +306,7 @@ left_or_right:
 		ld r0, r0
 		ldi r1, 1
 		and r0, r1 #check even POS or not
+		tst r1
 	is z #четное
 		inc r2
 		inc r0
@@ -256,7 +318,9 @@ left_or_right:
 		ldi r1, POS
 		st r1, r0
 	fi
-	
+
+	ldi r0, POS
+	ld r0, r0
 	ldi r2, MATRIX
 	add r0, r2
 	if
@@ -269,82 +333,60 @@ left_or_right:
 		st r2, r0 # now 1 on new POS (-2 or +2)
 	fi
 
-	# matrix update
-	ldi r1, POS
-	ld r1, r1
+	jsr display_row
+	jsr display_tick
 
-	# make r1 even
-	ldi r2, 254
-	and r2, r1
-
-	#first half
-	ldi r2, MATRIX
-	add r1, r2
-	ld r2, r2
-	ldi r3, MATRIX_O
-	add r1, r3
-	ld r3, r3
-	or r2, r3
-	ldi r2, IO_NOW
-	ld r2, r2
-	st r2, r3
-
-
-	#second half
-	ldi r2, MATRIX
-	add r1, r2
-	inc r2
-	ld r2, r2
-	ldi r3, MATRIX_O
-	add r1, r3
-	inc r3
-	ld r3, r3
-	or r2, r3
-	ldi r2, IO_NOW
-	ld r2, r2
-	st r2, r3
-	
-	#display tick
-	ldi r2, IO0
-	ldi r3, 1
-	st r2, r3
-	ldi r3, 0
-	st r2, r3
 	rts
 
 up:
+	jsr display_only_matrix_o
 	if
-		ldi r3, 2
+		ldi r3, 1
 		ldi r0, POS
 		ld r0, r1 # POS in r1
 		cmp r1, r3
-	is mi
-		ldi r0, IO_NOW
-		ldi r1, IO1
-		st r0, r1
-		ldi r3, 28
-		jsr up_or_down
-	else
+	is gt
 		# regular
 		ldi r0, IO_NOW
 		ld r0, r1
-		inc r1
+		dec r1
 		st r0, r1
 		ldi r3, -2
 		jsr up_or_down
+	else
+		ldi r0, IO_NOW
+		ldi r1, IO15
+		st r0, r1
+		ldi r3, 28
+		jsr up_or_down
 	fi
+	
 	rts
 
 down:
+	jsr display_only_matrix_o
 	if
 		ldi r3, 28
 		ldi r0, POS
 		ld r0, r1 # POS in r1
-		cmp r3, r1
-	is mi
+		cmp r1, r3
+	is eq
 		# bottom row
 		ldi r0, IO_NOW
-		ldi r1, IO15
+		ldi r1, IO1
+		st r0, r1
+		ldi r3, -28
+		jsr up_or_down
+	fi
+	if
+		ldi r3, 29
+		ldi r0, POS
+		ld r0, r1 # POS in r1
+		cmp r1, r3
+	is eq
+		# bottom row
+		ldi r0, IO_NOW
+		ldi r1, IO1
 		st r0, r1
 		ldi r3, -28
 		jsr up_or_down
@@ -352,7 +394,7 @@ down:
 		# regular
 		ldi r0, IO_NOW
 		ld r0, r1
-		dec r1
+		inc r1
 		st r0, r1
 		ldi r3, 2
 		jsr up_or_down
@@ -361,63 +403,32 @@ down:
 
 #store in r3 the number to move
 up_or_down:
-		ld r2, r0 #copy MATRIX[POS] data to r0
-		ldi r1, 0 
-		st r2, r1 #overwrite MATRIX[POS] with 0
-		add r3, r2
-		st r2, r0 #MATRIX[POS] data saved in r0 to MATRIX[POS+2]
-		ldi r0, POS
-		ld r0, r2 #ld POS value to r2
-		add r3, r2
-		st r0, r2 #overwrite POS
-		rts
+	jsr moving_preparing
+	ld r2, r0 #copy MATRIX[POS] data to r0
+	ldi r1, 0 
+	st r2, r1 #overwrite MATRIX[POS] with 0
+	add r3, r2
+	st r2, r0 #MATRIX[POS] data saved in r0 to MATRIX[POS+2]
+	ldi r0, POS
+	ld r0, r2 #ld POS value to r2
+	add r3, r2
+	st r0, r2 #overwrite POS
+
+	jsr display_row
+	jsr display_tick
+	rts
 
 regular:
-		# matrix update
-		ldi r1, POS
-		ld r1, r1
-		ldi r2, MATRIX #MATRIX adress in r2
-		add r1, r2 # MATRIX adr + POS to r2
-		st r2, r3
+	# matrix update
+	ldi r1, POS
+	ld r1, r1
+	ldi r2, MATRIX #MATRIX adress in r2
+	add r1, r2 # MATRIX adr + POS to r2
+	st r2, r3
 
-		# make r1 even
-		ldi r2, 254
-		and r2, r1
-
-		#first half
-		ldi r2, MATRIX
-		add r1, r2
-		ld r2, r2
-		ldi r3, MATRIX_O
-		add r1, r3
-		ld r3, r3
-		or r2, r3
-		ldi r2, IO_NOW
-		ld r2, r2
-		st r2, r3
-
-
-		#second half
-		inc r1
-		
-		ldi r2, MATRIX
-		add r1, r2
-		ld r2, r2
-		ldi r3, MATRIX_O
-		add r1, r3
-		ld r3, r3
-		or r2, r3
-		ldi r2, IO_NOW
-		ld r2, r2
-		st r2, r3
-		
-		#display tick
-		ldi r2, IO0
-		ldi r3, 1
-		st r2, r3
-		ldi r3, 0
-		st r2, r3
-		rts
+	jsr display_row
+	jsr display_tick
+	rts
 			
 overwrite:
 	ldi r2, MATRIX
@@ -426,6 +437,15 @@ overwrite:
 	add r0, r2
 	ldi r1, 0 
 	st r2, r1 #overwrite MATRIX[POS] with 0
+	rts
+
+display_tick:
+	#display tick
+	ldi r2, IO0
+	ldi r3, 1
+	st r2, r3
+	ldi r3, 0
+	st r2, r3
 	rts
 
 end
