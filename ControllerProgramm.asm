@@ -313,26 +313,14 @@ down:
 		ldi r0, POS
 		ld r0, r1 # POS in r1
 		cmp r1, r3
-	is eq
+	is ge
 		# bottom row
 		ldi r0, IO_NOW
 		ldi r1, IO1
 		st r0, r1
 		ldi r3, -28
 		jsr up_or_down
-	fi
-	if
-		ldi r3, 29
-		ldi r0, POS
-		ld r0, r1 # POS in r1
-		cmp r1, r3
-	is eq
-		# bottom row
-		ldi r0, IO_NOW
-		ldi r1, IO1
-		st r0, r1
-		ldi r3, -28
-		jsr up_or_down
+		rts
 	else
 		# regular
 		ldi r0, IO_NOW
