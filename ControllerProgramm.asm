@@ -41,7 +41,7 @@ IO15:
 POS:
 	asect 0x01
 MATRIX:
-	asect 0x30
+	asect 0x32
 MATRIX_O:
 
 
@@ -102,7 +102,10 @@ control:
 		ld r3, r3
 		tst r3
 	stays nz
-		jsr moving_preparing
+		ldi r0,POS
+		ld r0,r1 #POS in r1
+		ldi r2, MATRIX #MATRIX adress in r2
+		add r1, r2 # MATRIX adr + POS to r2
 		if
 			dec r3
 		is eq
@@ -177,13 +180,6 @@ display_only_matrix_o:
 	ld r2, r2
 	st r2, r0
 	rts
-
-moving_preparing:
-		ldi r0,POS
-		ld r0,r1 #POS in r1
-		ldi r2, MATRIX #MATRIX adress in r2
-		add r1, r2 # MATRIX adr + POS to r2
-		rts
 
 # display whole row (two halfs)
 display_row:
@@ -275,11 +271,9 @@ left_or_right:
 	if
 		tst r3
 	is mi #128 -> right
-		ldi r0,128
-		st r2, r0 # now 255 on new POS (-2 or +2)
+		st r2, r3 # now 255 on new POS (-2 or +2)
 	else #1 -> left
-		ldi r0,1
-		st r2, r0 # now 1 on new POS (-2 or +2)
+		st r2, r3 # now 1 on new POS (-2 or +2)
 	fi
 
 	jsr display_row
@@ -352,7 +346,10 @@ down:
 
 
 up_or_down:
-	jsr moving_preparing
+	ldi r0,POS
+	ld r0,r1 #POS in r1
+	ldi r2, MATRIX #MATRIX adress in r2
+	add r1, r2 # MATRIX adr + POS to r2
 	ld r2, r0
 	ldi r1, 0 
 	st r2, r1 #overwrite MATRIX[POS] with 0
