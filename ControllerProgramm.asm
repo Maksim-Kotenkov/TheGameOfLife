@@ -35,6 +35,8 @@ IO13:
 IO14:
 	asect 0xef
 IO15:
+	asect 0xf0
+IO16:
 
 # current POS in MATRIX and MATRIX_O
 	asect 0x00
@@ -74,7 +76,7 @@ start:
 
 	# now clear user's impact
 	ldi r0, IO1
-	ldi r2, 15
+	ldi r2, 16
 	while
 		tst r2
 	stays pl
@@ -298,9 +300,9 @@ up:
 		jsr up_or_down
 	else
 		ldi r0, IO_NOW
-		ldi r1, IO15
+		ldi r1, IO16
 		st r0, r1
-		ldi r3, 28
+		ldi r3, 30
 		jsr up_or_down
 	fi
 	
@@ -309,7 +311,7 @@ up:
 down:
 	jsr display_only_matrix_o  # remove cursor from old POS
 	if
-		ldi r3, 28
+		ldi r3, 30
 		ldi r0, POS
 		ld r0, r1 # POS in r1
 		cmp r1, r3
@@ -318,7 +320,7 @@ down:
 		ldi r0, IO_NOW
 		ldi r1, IO1
 		st r0, r1
-		ldi r3, -28
+		ldi r3, -30
 		jsr up_or_down
 		rts
 	else
