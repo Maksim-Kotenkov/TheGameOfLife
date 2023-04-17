@@ -1,7 +1,8 @@
-#import logisim-banked-memory-0.1.2.jar
+# store output to use at the moment
 	asect 0xd0
 IO_NOW:
 
+# output adresses
 	asect 0xe0
 IO0:
 	asect 0xe1
@@ -35,6 +36,7 @@ IO14:
 	asect 0xef
 IO15:
 
+# current POS in MATRIX and MATRIX_O
 	asect 0x00
 POS:
 	asect 0x01
@@ -42,15 +44,14 @@ MATRIX:
 	asect 0x30
 MATRIX_O:
 
-	asect 0xf0
-STACK:
 
 #####################################################################
 ### main code
 asect 0
 start:
+	# initialize POS, cursor in MATRIX and one cell alive in MATRIX_O
 	ldi r0, 15
-	ldi r1, 128 #test
+	ldi r1, 128
 	ldi r2, MATRIX_O
 	ldi r3, POS
 	st r3, r0 
@@ -59,12 +60,16 @@ start:
 	ldi r2, MATRIX
 	add r0, r2
 	st r2, r1
+
+	# set current output adress
 	ldi r3, IO8
 	ldi r2, IO_NOW
 	st r2, r3
 
+	# display first alive cell
 	jsr display_only_matrix_o
 	jsr display_tick
+	# let user control the game while he's not tired
 	jsr control
 
 	# now clear user's impact
@@ -80,7 +85,7 @@ start:
 		dec r2
 	wend
 
-	# now infinite loop of life
+	# and now infinite loop of life
 	ldi r0, IO0
 	ldi r1, 1
 	ldi r2, 0
@@ -90,6 +95,7 @@ start:
 		st r0, r2
 	wend
 
+# buttons processing
 control:
 	while
 		ldi r3, IO0
@@ -100,9 +106,7 @@ control:
 		if
 			dec r3
 		is eq
-			# rts #test
 			jsr up
-			#jsr display
 		fi
 		if
 			dec r3
@@ -113,7 +117,6 @@ control:
 			dec r3
 		is eq
 			jsr down
-			#jsr display
 		fi
 		if
 			dec r3
@@ -124,7 +127,6 @@ control:
 			dec r3
 		is eq
 			jsr copy_to_final
-			rts
 		fi
 		if
 			dec r3
@@ -132,71 +134,25 @@ control:
 			#start playing
 			rts
 		fi
-		#jsr display
 	wend
 	rts
 
+# copy-paste MATRIX[POS] to MATRIX_O[POS]
 copy_to_final:
 	ldi r0, MATRIX
 	ldi r1, MATRIX_O
-	ldi r2, 30
-	while
-		tst r2
-	stays pl
-		push r2
-		ld r0, r2
-		ld r1, r3
-		or r2, r3
-		st r1, r3
-		pop r2
-		inc r0
-		inc r1
-		dec r2
-	wend
+	ldi r2, POS
+	ld r2, r2
+	add r2, r0
+	add r2, r1
+	ld r0, r0
+	ld r1, r2
+	or r0, r2
+	st r1, r2
 	rts
 
-
-### display condition when user rules the world
-# display:
-# 		ldi r0, 30
-# 		ldi r1, IO1
-		
-# 		while
-# 			tst r0
-# 		stays pl
-# 			ldi r2, MATRIX
-# 			add r0, r2
-# 			ld r2, r2
-# 			ldi r3, MATRIX_O
-# 			add r0, r3
-# 			ld r3, r3
-# 			or r2, r3
-# 			st r1, r3
-# 			dec r0
-
-# 			ldi r2, MATRIX
-# 			add r0, r2
-# 			ld r2, r2
-# 			ldi r3, MATRIX_O
-# 			add r0, r3
-# 			ld r3, r3
-# 			or r2, r3
-# 			st r1, r3
-# 			dec r0
-
-# 			inc r1
-# 		wend
-
-# 		ldi r2, IO0
-# 		ldi r3, 1
-# 		st r2, r3
-# 		ldi r3, 0
-# 		st r2, r3
-
-# 		rts
-
+# if we need to remove cursor from current row
 display_only_matrix_o:
-	#display new row
 	ldi r1, POS
 	ld r1, r1
 
@@ -222,9 +178,6 @@ display_only_matrix_o:
 	st r2, r0
 	rts
 
-# POS adress in r0
-# POS value in r1
-# MATRIX[POS] adress in r2
 moving_preparing:
 		ldi r0,POS
 		ld r0,r1 #POS in r1
@@ -232,8 +185,8 @@ moving_preparing:
 		add r1, r2 # MATRIX adr + POS to r2
 		rts
 
+# display whole row (two halfs)
 display_row:
-	#display new row
 	ldi r1, POS
 	ld r1, r1
 
@@ -269,14 +222,12 @@ display_row:
 
 right:
 	if
-		ld r2,r3 #MATRIX[POS] val in r3
-		shr r3 # moving in a row
+		ld r2,r3
+		shr r3 # right shift
 	is cs #if problems and we crossed the border
 		ldi r3, 128
 		jsr left_or_right
 	else
-		#спасите
-		#спасли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
 		ldi r0, 128
 		xor r0, r3
 		jsr regular
@@ -285,19 +236,17 @@ right:
 
 left:
 	if
-		ld r2,r3 #MATRIX[POS] val in r2
-		shla r3 
+		ld r2,r3
+		shla r3 # left shift
 	is cs
 		ldi r3, 1
 		jsr left_or_right
 	else
-		#боже помогите
-		#помогли, всё хорошо и слава тебе Кокомаро, оно сдвинулось
 		jsr regular
 	fi
 	rts
 
-# load 1 in r3 to left shjift or 128 to right shift
+
 left_or_right:
 	jsr overwrite
 
@@ -307,12 +256,12 @@ left_or_right:
 		ldi r1, 1
 		and r0, r1 #check even POS or not
 		tst r1
-	is z #четное
+	is z # even
 		inc r2
 		inc r0
 		ldi r1, POS
 		st r1, r0 #change POS
-	else #нечетное
+	else # odd
 		dec r2
 		dec r0
 		ldi r1, POS
@@ -339,7 +288,7 @@ left_or_right:
 	rts
 
 up:
-	jsr display_only_matrix_o
+	jsr display_only_matrix_o  # remove cursor from old POS
 	if
 		ldi r3, 1
 		ldi r0, POS
@@ -364,7 +313,7 @@ up:
 	rts
 
 down:
-	jsr display_only_matrix_o
+	jsr display_only_matrix_o  # remove cursor from old POS
 	if
 		ldi r3, 28
 		ldi r0, POS
@@ -401,16 +350,16 @@ down:
 	fi
 	rts
 
-#store in r3 the number to move
+
 up_or_down:
 	jsr moving_preparing
-	ld r2, r0 #copy MATRIX[POS] data to r0
+	ld r2, r0
 	ldi r1, 0 
 	st r2, r1 #overwrite MATRIX[POS] with 0
 	add r3, r2
-	st r2, r0 #MATRIX[POS] data saved in r0 to MATRIX[POS+2]
+	st r2, r0 #MATRIX[POS] data saved in r0 to MATRIX[POS+SHIFT]
 	ldi r0, POS
-	ld r0, r2 #ld POS value to r2
+	ld r0, r2
 	add r3, r2
 	st r0, r2 #overwrite POS
 
