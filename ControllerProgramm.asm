@@ -88,14 +88,36 @@ start:
 	wend
 
 	# and now infinite loop of life
-	ldi r0, IO0
-	ldi r1, 1
-	ldi r2, 0
 	while
+		ldi r3, IO0
+		ld r3, r3
+		tst r3
 	stays nz
-		st r0, r1
-		st r0, r2
+		if
+			ldi r1, 7
+			cmp r1, r3
+		is eq
+			# handmade delay
+			ldi r3, IO0
+			ldi r3, IO0
+			ldi r3, IO0
+			# waiting for pause button to be pressed again
+			while
+				ldi r3, IO0
+				ld r3, r3
+				ldi r1, 7
+				cmp r1, r3
+			stays ne
+			wend
+		else
+			ldi r0, IO0
+			ldi r1, 1
+			ldi r2, 0
+			st r0, r1
+			st r0, r2
+		fi
 	wend
+
 
 # buttons processing
 control:
@@ -142,6 +164,7 @@ control:
 	wend
 	rts
 
+
 # copy-paste MATRIX[POS] to MATRIX_O[POS]
 copy_to_final:
 	ldi r0, MATRIX
@@ -152,9 +175,10 @@ copy_to_final:
 	add r2, r1
 	ld r0, r0
 	ld r1, r2
-	or r0, r2
+	xor r0, r2
 	st r1, r2
 	rts
+
 
 # if we need to remove cursor from current row
 display_only_matrix_o:
@@ -182,6 +206,7 @@ display_only_matrix_o:
 	ld r2, r2
 	st r2, r0
 	rts
+
 
 # display whole row (two halfs)
 display_row:
@@ -218,6 +243,7 @@ display_row:
 	st r2, r0
 	rts
 
+
 right:
 	if
 		ld r2,r3
@@ -228,9 +254,12 @@ right:
 	else
 		ldi r0, 128
 		xor r0, r3
-		jsr regular
+		st r2, r3
+		jsr display_row
+		jsr display_tick
 	fi
 	rts
+
 
 left:
 	if
@@ -240,13 +269,16 @@ left:
 		ldi r3, 1
 		jsr left_or_right
 	else
-		jsr regular
+		st r2, r3
+		jsr display_row
+		jsr display_tick
 	fi
 	rts
 
 
 left_or_right:
-	jsr overwrite
+	ldi r1, 0
+	st r2, r1
 
 	if
 		ldi r0, POS
@@ -280,8 +312,8 @@ left_or_right:
 
 	jsr display_row
 	jsr display_tick
-
 	rts
+
 
 up:
 	jsr display_only_matrix_o  # remove cursor from old POS
@@ -305,8 +337,8 @@ up:
 		ldi r3, 30
 		jsr up_or_down
 	fi
-	
 	rts
+
 
 down:
 	jsr display_only_matrix_o  # remove cursor from old POS
@@ -354,33 +386,13 @@ up_or_down:
 	jsr display_tick
 	rts
 
-regular:
-	# matrix update
-	ldi r1, POS
-	ld r1, r1
-	ldi r2, MATRIX #MATRIX adress in r2
-	add r1, r2 # MATRIX adr + POS to r2
-	st r2, r3
-
-	jsr display_row
-	jsr display_tick
-	rts
-			
-overwrite:
-	ldi r2, MATRIX
-	ldi r0, POS
-	ld r0, r0
-	add r0, r2
-	ldi r1, 0 
-	st r2, r1 #overwrite MATRIX[POS] with 0
-	rts
 
 display_tick:
 	#display tick
 	ldi r2, IO0
 	ldi r3, 1
 	st r2, r3
-	ldi r3, 0
+	dec r3
 	st r2, r3
 	rts
 
