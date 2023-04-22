@@ -51,26 +51,11 @@ MATRIX_O:
 ### main code
 asect 0
 start:
-	# initialize POS, cursor in MATRIX and one cell alive in MATRIX_O
-	ldi r0, 15
-	ldi r1, 128
-	ldi r2, MATRIX_O
-	ldi r3, POS
-	st r3, r0 
-	add r0, r2
-	st r2, r1
-	ldi r2, MATRIX
-	add r0, r2
-	st r2, r1
-
-	# set current output adress
-	ldi r3, IO8
-	ldi r2, IO_NOW
-	st r2, r3
-
+	jsr init
 	# display first alive cell
 	jsr display_only_matrix_o
 	jsr display_tick
+
 	# let user control the game while he's not tired
 	jsr control
 
@@ -118,6 +103,25 @@ start:
 		fi
 	wend
 
+init:
+	# initialize POS, cursor in MATRIX and one cell alive in MATRIX_O
+	ldi r0, 15
+	ldi r1, 128
+	ldi r2, MATRIX_O
+	ldi r3, POS
+	st r3, r0 
+	add r0, r2
+	st r2, r1
+	ldi r2, MATRIX
+	add r0, r2
+	st r2, r1
+
+	# set current output adress
+	ldi r3, IO8
+	ldi r2, IO_NOW
+	st r2, r3
+
+	rts
 
 # buttons processing
 control:
@@ -161,9 +165,47 @@ control:
 			#start playing
 			rts
 		fi
+		if
+			dec r3
+			dec r3
+		is eq
+			jsr reset
+		fi
 	wend
 	rts
 
+reset:
+	ldi r0, MATRIX_O
+	ldi r2, 32
+	ldi r3, 0
+	while
+		tst r2
+	stays pl
+		st r0, r3
+		inc r0
+		dec r2
+	wend
+	ldi r0, MATRIX
+	ldi r1, POS
+	ld r1, r1
+	add r1, r0
+	st r0, r3
+
+	ldi r2, 16
+	ldi r0, IO1
+	while
+		tst r2
+	stays pl
+		st r0, r3
+		st r0, r3
+		inc r0
+		dec r2
+	wend
+
+	jsr init
+	jsr display_only_matrix_o
+	jsr display_tick
+	rts
 
 # copy-paste MATRIX[POS] to MATRIX_O[POS]
 copy_to_final:
@@ -205,6 +247,7 @@ display_only_matrix_o:
 	ldi r2, IO_NOW
 	ld r2, r2
 	st r2, r0
+	
 	rts
 
 
