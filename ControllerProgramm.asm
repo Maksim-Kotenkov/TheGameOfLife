@@ -112,9 +112,12 @@ start:
 
 # set all output to 0
 clear_user_impact:
+	jsr display_only_matrix_o
+	jsr display_tick
+
+	ldi r3, 0
 	ldi r0, IO1
 	ldi r2, 16
-	ldi r3, 0
 	while
 		tst r2
 	stays pl
@@ -198,6 +201,12 @@ control:
 		is eq  # 8
 			jsr glider
 		fi
+		if
+			dec r3
+			dec r3
+		is eq  # 10
+			jsr explosion
+		fi
 	wend
 	rts
 
@@ -238,7 +247,6 @@ glider:
 	jsr init # cursor`ll be in center
 	ldi r3, IO7
 	ldi r0, 12
-	ld r0, r0
 	ldi r1, MATRIX_O
 	add r0, r1
 	ldi r2, 3
@@ -267,6 +275,82 @@ glider:
 	dec r2
 	st r3, r2  # 0 to the second half
 	
+	jsr display_tick
+	rts
+
+# make pattern of explosion
+explosion:
+	jsr reset_matrix_o
+	jsr clear_user_impact
+
+	jsr init # cursor`ll be in center
+	ldi r3, IO6
+	ldi r0, 10
+	ldi r1, MATRIX_O
+	add r0, r1
+	ldi r2, 3
+	st r1, r2
+	st r3, r2
+	inc r1
+	ldi r0, 128  # second half
+	st r3, r0
+	st r1, r0
+	inc r1
+
+	# next IO
+	inc r3
+	ldi r2, 2
+	st r1, r2
+	st r3, r2
+	inc r1
+	st r3, r0
+	st r1, r0
+	inc r1
+
+	# next IO
+	inc r3
+	ldi r2, 3
+	st r1, r2
+	st r3, r2
+	inc r1
+	st r3, r0
+	st r1, r0
+	inc r1
+
+	# shift 
+	inc r1
+	inc r1
+	inc r1
+	inc r3
+	inc r3
+
+	ldi r2, 3
+	st r1, r2
+	st r3, r2
+	inc r1
+	st r3, r0
+	st r1, r0
+	inc r1
+
+	# next IO
+	inc r3
+	ldi r2, 2
+	st r1, r2
+	st r3, r2
+	inc r1
+	st r3, r0
+	st r1, r0
+	inc r1
+
+	# next IO
+	inc r3
+	ldi r2, 3
+	st r1, r2
+	st r3, r2
+	inc r1
+	st r1, r0
+	st r3, r0
+
 	jsr display_tick
 	rts
 
