@@ -43,7 +43,7 @@ IO16:
 POS:
 	asect 0x01
 MATRIX:
-	asect 0x32
+	asect 0x33
 MATRIX_O:
 
 
@@ -113,7 +113,6 @@ start:
 # set all output to 0
 clear_user_impact:
 	jsr display_only_matrix_o
-	jsr display_tick
 
 	ldi r3, 0
 	ldi r0, IO1
