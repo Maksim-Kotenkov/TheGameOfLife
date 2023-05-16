@@ -43,7 +43,7 @@ IO16:
 POS:
 	asect 0x01
 MATRIX:
-	asect 0x33
+	asect 0x21
 MATRIX_O:
 
 
