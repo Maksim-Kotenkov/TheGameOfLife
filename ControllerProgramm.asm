@@ -478,24 +478,16 @@ left_or_right:
 	is z # even
 		inc r2
 		inc r0
-		ldi r1, POS
-		st r1, r0 #change POS
 	else # odd
 		dec r2
 		dec r0
-		ldi r1, POS
-		st r1, r0
 	fi
+	ldi r1, POS
+	st r1, r0
 
 	ldi r2, MATRIX
 	add r0, r2
-	if
-		tst r3
-	is mi #128 -> right
-		st r2, r3 # now 128 on new POS (-2 or +2)
-	else #1 -> left
-		st r2, r3 # now 1 on new POS (-2 or +2)
-	fi
+	st r2, r3 # now 1 on new POS (-2 or +2)
 
 	jsr display_column
 	jsr display_tick
@@ -514,16 +506,14 @@ up:
 		ldi r0, IO_NOW
 		ld r0, r1
 		dec r1
-		st r0, r1
 		ldi r3, -2
-		jsr up_or_down
 	else
 		ldi r0, IO_NOW
 		ldi r1, IO16
-		st r0, r1
 		ldi r3, 30
-		jsr up_or_down
 	fi
+	st r0, r1
+	jsr up_or_down
 	rts
 
 # down button
@@ -538,19 +528,16 @@ down:
 		# bottom row
 		ldi r0, IO_NOW
 		ldi r1, IO1
-		st r0, r1
 		ldi r3, -30
-		jsr up_or_down
-		rts
 	else
 		# regular
 		ldi r0, IO_NOW
 		ld r0, r1
 		inc r1
-		st r0, r1
 		ldi r3, 2
-		jsr up_or_down
 	fi
+	st r0, r1
+	jsr up_or_down
 	rts
 
 # same, like with right/left, but there r3 help us to move cursor to MATRIX[POS+r3]
