@@ -492,7 +492,7 @@ left_or_right:
 	if
 		tst r3
 	is mi #128 -> right
-		st r2, r3 # now 255 on new POS (-2 or +2)
+		st r2, r3 # now 128 on new POS (-2 or +2)
 	else #1 -> left
 		st r2, r3 # now 1 on new POS (-2 or +2)
 	fi
